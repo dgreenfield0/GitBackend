@@ -19,6 +19,8 @@ import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.DataService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
+import util.HttpUtil;
+
 public class GitService {
 
         public GitHubClient client;
@@ -28,14 +30,18 @@ public class GitService {
         public Repository repo;
         String repoName;
         String repoOwner;
-
+        String rawGitHub = "https://raw.github.com/";
+        String Git_DB_URL;
+        HttpUtil httpUtil = new HttpUtil();
+        String branch;
+        
         public static void main(String args[]){
             try {
-                String repositoryName = args[0].toString();
+                String repositoryName = "TestGitService"; //args[0].toString();
                 String repositoryOwner= args[1].toString();
                 String authUser= args[3].toString();
                 String authPass= args[4].toString();
-                GitService gservice = new GitService(repositoryName,repositoryOwner,authUser,authPass);
+                GitService gservice = new GitService(repositoryName,repositoryOwner,authUser,authPass, "master");
                 gservice.CommitUpdate(gservice, "neo_recent/recent", "[\"Recent\"]", "Recent");
                 gservice.CommitUpdate(gservice, "neo_news/latestnews", "[\"NEWS\"]", "News");
                 System.out.println("Done");
@@ -45,11 +51,12 @@ public class GitService {
         }
     }
 
-        public GitService(String repositoryName, String repositoryOwner, String user, String password) throws IOException {
+        public GitService(String repositoryName, String repositoryOwner, String user, String password, String Branch) throws IOException {
             client = new GitHubClient();
             client.setCredentials(user, password);
             this.repoName =repositoryName;
             this.repoOwner = repositoryOwner;
+            this.branch = Branch;
             initServices(client);
         }
 
@@ -148,7 +155,7 @@ public class GitService {
             commiteTest.setParents(listOfCommits);
             Commit brandnew = gservice.dservice.createCommit(gservice.repo, commiteTest);
             
-            Reference reference  = gservice.dservice.getReference(gservice.repo, "heads/master");
+            Reference reference  = gservice.dservice.getReference(gservice.repo, "heads/"+this.branch);
             TypedResource ctResource = new TypedResource();
             ctResource.setSha(brandnew.getSha());
             ctResource.setType(TypedResource.TYPE_COMMIT);
@@ -158,4 +165,11 @@ public class GitService {
             gservice.dservice.editReference(gservice.repo, reference, true);
             System.out.println("GitService Done");
         }
+
+        public String retreiveData(String DataDirectory, String DataFileToGet){
+            String readURL = rawGitHub+this.repoOwner+"/"+this.repoName+"/master/"+DataDirectory+"/"+DataFileToGet;
+            System.out.println("TEST "+readURL);
+            return httpUtil.get(readURL);
+        }
+
 }

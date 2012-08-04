@@ -1,5 +1,7 @@
 package domain;
 
+import com.google.gson.Gson;
+
 public class User {
 
     public String name;
@@ -28,5 +30,10 @@ public class User {
     
     public void setAge(String age) {
         this.age = age;
+    }
+    
+    public String retrieveJson(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
  }
